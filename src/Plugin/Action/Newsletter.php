@@ -17,7 +17,7 @@ use Drupal\Core\Mail\MailManagerInterface;
  *   id = "send_user_email",
  *   label = @Translation("Send email to selected users"),
  *   type = "user",
- *   confirm_form_route_name = "vbo_user_email.send_email_form"
+ *   confirm_form_route_name = "vbo_newsletter.send_email_form"
  * )
  */
 class SendUserEmail extends ActionBase implements ContainerFactoryPluginInterface {

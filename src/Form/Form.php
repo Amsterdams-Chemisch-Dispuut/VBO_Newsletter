@@ -55,7 +55,7 @@ class SendUserEmailForm extends FormBase {
       $user = \Drupal\user\Entity\User::load($uid);
       if ($user instanceof UserInterface) {
         $this->mailManager->mail(
-          'vbo_user_email',
+          'vbo_newsletter',
           'send_email',
           $user->getEmail(),
           $user->getPreferredLangcode(),
