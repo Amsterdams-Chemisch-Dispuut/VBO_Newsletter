@@ -20,7 +20,7 @@ use Drupal\Core\Mail\MailManagerInterface;
  *   confirm_form_route_name = "vbo_newsletter.send_email_form"
  * )
  */
-class SendUserEmail extends ActionBase implements ContainerFactoryPluginInterface {
+class NewsletterSend extends ActionBase implements ContainerFactoryPluginInterface {
 
   protected MailManagerInterface $mailManager;
 

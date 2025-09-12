@@ -8,7 +8,7 @@ use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\user\UserInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class SendUserEmailForm extends FormBase {
+class NewsletterForm extends FormBase {
 
   protected MailManagerInterface $mailManager;
 
