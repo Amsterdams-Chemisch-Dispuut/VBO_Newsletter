@@ -1,0 +1,7 @@
+vbo_newsletter.send_email_form:
+  path: '/vbo-newsletter/send'
+  defaults:
+    _form: '\Drupal\vbo_newsletter\Form\SendUserEmailForm'
+    _title: 'Send email to selected users'
+  requirements:
+    _permission: 'administer users'

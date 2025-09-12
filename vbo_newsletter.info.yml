@@ -1,0 +1,7 @@
+name: 'VBO Newsletter'
+type: module
+description: 'A Module to send Newsletters using a Vies Bulk Operation.'
+core_version_requirement: ^11
+package: Custom
+dependencies:
+  - drupal:user
