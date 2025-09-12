@@ -21,7 +21,8 @@ class NewsletterForm extends FormBase {
   }
 
   public function getFormId() {
-    return 'send_user_email_form';
+    // This must match the confirm_form_route_name in the Action plugin.
+    return 'send_email_form';
   }
 
   public function buildForm(array $form, FormStateInterface $form_state, $users = NULL) {

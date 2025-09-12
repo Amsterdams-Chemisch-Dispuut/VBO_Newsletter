@@ -13,12 +13,16 @@ use Drupal\Core\Mail\MailManagerInterface;
 /**
  * Sends a custom email to selected users.
  *
+/**
+ * Provides a VBO action to send email to selected users.
+ *
  * @Action(
  *   id = "send_user_email",
  *   label = @Translation("Send email to selected users"),
  *   type = "user",
  *   confirm_form_route_name = "vbo_newsletter.send_email_form"
  * )
+ */
  */
 class NewsletterSend extends ActionBase implements ContainerFactoryPluginInterface {
 
@@ -38,12 +42,33 @@ class NewsletterSend extends ActionBase implements ContainerFactoryPluginInterfa
     );
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function execute($entity = NULL) {
-    // Nothing here; the form handles sending emails.
+    // This method is required for VBO compatibility.
+    // The actual sending is handled by the confirmation form.
+    // Optionally, you could add logging or other logic here.
+    return NULL;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function access($object, AccountInterface $account = NULL, $return_as_object = FALSE) {
-    return $object instanceof UserInterface ? TRUE : FALSE;
+    // Only allow action for user entities.
+    $result = $object instanceof UserInterface;
+    return $return_as_object ? $this->wrapAccessResult($result) : $result;
+  }
+
+  /**
+   * Helper for Drupal 11 access result wrapping.
+   */
+  protected function wrapAccessResult($result) {
+    if (class_exists('Drupal\\Core\\Access\\AccessResult')) {
+      return \Drupal\Core\Access\AccessResult::allowedIf($result);
+    }
+    return $result;
   }
 
 }
