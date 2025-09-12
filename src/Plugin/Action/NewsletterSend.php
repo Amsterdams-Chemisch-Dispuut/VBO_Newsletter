@@ -11,9 +11,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Mail\MailManagerInterface;
 
 /**
- * Sends a custom email to selected users.
- *
-/**
  * Provides a VBO action to send email to selected users.
  *
  * @Action(
@@ -22,7 +19,6 @@ use Drupal\Core\Mail\MailManagerInterface;
  *   type = "user",
  *   confirm_form_route_name = "vbo_newsletter.send_email_form"
  * )
- */
  */
 class NewsletterSend extends ActionBase implements ContainerFactoryPluginInterface {
 
