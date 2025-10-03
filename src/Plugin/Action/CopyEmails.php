@@ -64,9 +64,6 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
     $this->messenger()->addMessage($this->t('Collected emails: @emails', [
       '@emails' => $email_string,
     ]));
-
-    // Optionally return string if needed.
-    return $email_string;
   }
 
   /**
