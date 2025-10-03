@@ -7,6 +7,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Render\Markup;
 
 /**
  * Sends a newsletter to selected entities.
@@ -26,7 +28,6 @@ class NewsletterSend extends ViewsBulkOperationsActionBase {
    * {@inheritdoc}
    */
   public function needsConfiguration() {
-    // This tells VBO to display the config form before running.
     return TRUE;
   }
 
@@ -70,15 +71,38 @@ class NewsletterSend extends ViewsBulkOperationsActionBase {
     if ($entity->hasField('mail') && !$entity->get('mail')->isEmpty()) {
       $recipient = $entity->get('mail')->value;
 
-      // Grab subject and body from configuration.
       $subject = $this->configuration['subject'] ?? $this->t('Newsletter');
       $body = $this->configuration['body'] ?? '';
 
-      // TODO: Use MailManagerInterface here.
-      $this->messenger()->addMessage($this->t(
-        'Sent newsletter to @recipient: @subject',
-        ['@recipient' => $recipient, '@subject' => $subject]
-      ));
+      /** @var \Drupal\Core\Mail\MailManagerInterface $mailManager */
+      $mailManager = \Drupal::service('plugin.manager.mail');
+      $langcode = \Drupal::currentUser()->getPreferredLangcode();
+
+      $params = [
+        'subject' => $subject,
+        'body' => $body,
+      ];
+
+      $result = $mailManager->mail(
+        'vbo_newsletter',       // module key
+        'newsletter_send',      // message key
+        $recipient,             // to
+        $langcode,
+        $params,
+        NULL,
+        TRUE
+      );
+
+      if ($result['result'] !== TRUE) {
+        $this->messenger()->addError($this->t('There was a problem sending the newsletter to @recipient.', [
+          '@recipient' => $recipient,
+        ]));
+      }
+      else {
+        $this->messenger()->addMessage($this->t('Newsletter sent to @recipient.', [
+          '@recipient' => $recipient,
+        ]));
+      }
 
       return $this->t('Newsletter sent to @recipient', ['@recipient' => $recipient]);
     }
