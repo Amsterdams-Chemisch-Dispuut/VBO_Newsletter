@@ -22,13 +22,6 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
   use MessengerTrait;
 
   /**
-   * Temporary storage for collected emails.
-   *
-   * @var array
-   */
-  protected $emails = [];
-
-  /**
    * {@inheritdoc}
    */
   public function execute($entity = NULL) {
@@ -36,9 +29,13 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
       return;
     }
 
-    // Make sure the entity has an email field.
+    // Only collect email if available.
     if ($entity->hasField('mail') && !$entity->get('mail')->isEmpty()) {
-      $this->emails[] = $entity->get('mail')->value;
+      $emails[] = $entity->get('mail')->value;
+      // Immediately output via messenger.
+      $this->messenger()->addMessage($this->t('Collected email: @email', [
+        '@email' => $entity->get('mail')->value,
+      ]));
     }
 
     // DO NOT return anything.
@@ -48,19 +45,20 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
    * {@inheritdoc}
    */
   public function executeMultiple(array $entities) {
-    $this->emails = [];
-
+    // Collect emails and output immediately.
+    $emails = [];
     foreach ($entities as $entity) {
-      $this->execute($entity);
+      if ($entity->hasField('mail') && !$entity->get('mail')->isEmpty()) {
+        $emails[] = $entity->get('mail')->value;
+      }
     }
 
-    // Join emails with commas.
-    $email_string = implode(',', $this->emails);
-
-    // Display in a Drupal message.
-    $this->messenger()->addMessage($this->t('Collected emails: @emails', [
-      '@emails' => $email_string,
-    ]));
+    if (!empty($emails)) {
+      $email_string = implode(',', $emails);
+      $this->messenger()->addMessage($this->t('Collected emails: @emails', [
+        '@emails' => $email_string,
+      ]));
+    }
 
     // DO NOT return anything.
   }
@@ -69,7 +67,6 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
    * {@inheritdoc}
    */
   public function access($object, AccountInterface $account = NULL, $return_as_object = FALSE) {
-    // Only allow access to admins or users who can view email.
     return $account->hasPermission('administer users')
       ? TRUE
       : $object->access('view', $account, $return_as_object);
