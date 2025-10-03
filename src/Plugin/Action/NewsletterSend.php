@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\VBO_Newsletter\Plugin\Action;
+namespace Drupal\vbo_newsletter\Plugin\Action;
 
 use Drupal\views_bulk_operations\Action\ViewsBulkOperationsActionBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -12,7 +12,7 @@ use Drupal\Core\Messenger\MessengerTrait;
  * Sends a newsletter to selected entities.
  *
  * @Action(
- *   id = "VBO_Newsletter_newsletter_send",
+ *   id = "vbo_newsletter_send",
  *   label = @Translation("Send newsletter"),
  *   type = ""
  * )
@@ -21,6 +21,14 @@ class NewsletterSend extends ViewsBulkOperationsActionBase {
 
   use StringTranslationTrait;
   use MessengerTrait;
+
+  /**
+   * {@inheritdoc}
+   */
+  public function needsConfiguration() {
+    // This tells VBO to display the config form before running.
+    return TRUE;
+  }
 
   /**
    * {@inheritdoc}
@@ -66,7 +74,7 @@ class NewsletterSend extends ViewsBulkOperationsActionBase {
       $subject = $this->configuration['subject'] ?? $this->t('Newsletter');
       $body = $this->configuration['body'] ?? '';
 
-      // TODO: Replace with real MailManager send.
+      // TODO: Use MailManagerInterface here.
       $this->messenger()->addMessage($this->t(
         'Sent newsletter to @recipient: @subject',
         ['@recipient' => $recipient, '@subject' => $subject]
