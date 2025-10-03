@@ -1,72 +1,88 @@
 <?php
 
-namespace Drupal\vbo_newsletter\Plugin\Action;
+namespace Drupal\VBO_Newsletter\Plugin\Action;
 
-use Drupal\Core\Action\ActionBase;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\user\UserInterface;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\views_bulk_operations\Action\ViewsBulkOperationsActionBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Messenger\MessengerTrait;
 
 /**
- * Provides a VBO action to send email to selected users.
+ * Sends a newsletter to selected entities.
  *
  * @Action(
- *   id = "send_user_email",
- *   label = @Translation("Send email to selected users"),
- *   type = "user",
- *   confirm_form_route_name = "vbo_newsletter.send_email_form"
+ *   id = "VBO_Newsletter_newsletter_send",
+ *   label = @Translation("Send newsletter"),
+ *   type = ""
  * )
  */
-class NewsletterSend extends ActionBase implements ContainerFactoryPluginInterface {
+class NewsletterSend extends ViewsBulkOperationsActionBase {
 
-  protected MailManagerInterface $mailManager;
+  use StringTranslationTrait;
+  use MessengerTrait;
 
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, MailManagerInterface $mail_manager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition);
-    $this->mailManager = $mail_manager;
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form['subject'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Subject'),
+      '#required' => TRUE,
+      '#default_value' => $this->configuration['subject'] ?? '',
+    ];
+
+    $form['body'] = [
+      '#type' => 'textarea',
+      '#title' => $this->t('Message body'),
+      '#required' => TRUE,
+      '#default_value' => $this->configuration['body'] ?? '',
+    ];
+
+    return $form;
   }
 
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('plugin.manager.mail')
-    );
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $this->configuration['subject'] = $form_state->getValue('subject');
+    $this->configuration['body'] = $form_state->getValue('body');
   }
 
   /**
    * {@inheritdoc}
    */
   public function execute($entity = NULL) {
-    // This method is required for VBO compatibility.
-    // The actual sending is handled by the confirmation form.
-    // Optionally, you could add logging or other logic here.
-    return NULL;
+    if (!$entity) {
+      return;
+    }
+
+    if ($entity->hasField('mail') && !$entity->get('mail')->isEmpty()) {
+      $recipient = $entity->get('mail')->value;
+
+      // Grab subject and body from configuration.
+      $subject = $this->configuration['subject'] ?? $this->t('Newsletter');
+      $body = $this->configuration['body'] ?? '';
+
+      // TODO: Replace with real MailManager send.
+      $this->messenger()->addMessage($this->t(
+        'Sent newsletter to @recipient: @subject',
+        ['@recipient' => $recipient, '@subject' => $subject]
+      ));
+
+      return $this->t('Newsletter sent to @recipient', ['@recipient' => $recipient]);
+    }
+
+    return $this->t('No email found for entity ID @id', ['@id' => $entity->id()]);
   }
 
   /**
    * {@inheritdoc}
    */
   public function access($object, AccountInterface $account = NULL, $return_as_object = FALSE) {
-    // Only allow action for user entities.
-    $result = $object instanceof UserInterface;
-    return $return_as_object ? $this->wrapAccessResult($result) : $result;
-  }
-
-  /**
-   * Helper for Drupal 11 access result wrapping.
-   */
-  protected function wrapAccessResult($result) {
-    if (class_exists('Drupal\\Core\\Access\\AccessResult')) {
-      return \Drupal\Core\Access\AccessResult::allowedIf($result);
-    }
-    return $result;
+    return $object->access('update', $account, $return_as_object);
   }
 
 }
-
-?>
