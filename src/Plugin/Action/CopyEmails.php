@@ -41,8 +41,7 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
       $this->emails[] = $entity->get('mail')->value;
     }
 
-    // We don’t return anything yet; we’ll handle it in executeMultiple().
-    return;
+    // DO NOT return anything.
   }
 
   /**
@@ -51,7 +50,6 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
   public function executeMultiple(array $entities) {
     $this->emails = [];
 
-    // Call the default execute() for each entity.
     foreach ($entities as $entity) {
       $this->execute($entity);
     }
@@ -59,11 +57,12 @@ class CopyEmails extends ViewsBulkOperationsActionBase {
     // Join emails with commas.
     $email_string = implode(',', $this->emails);
 
-    // Output to a "clipboard-friendly" modal / message.
-    // Drupal messenger will show it; users can copy manually.
+    // Display in a Drupal message.
     $this->messenger()->addMessage($this->t('Collected emails: @emails', [
       '@emails' => $email_string,
     ]));
+
+    // DO NOT return anything.
   }
 
   /**
